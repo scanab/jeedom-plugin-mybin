@@ -452,6 +452,7 @@ class mybin extends eqLogic {
 
             $counterCmd = $this->getCmd(null, 'counter');
             if ($counterCmd->getIsVisible() == 1) {
+                $cmdVal = $counterCmd->execCmd();
                 $replace['#counter_id#'] = $counterCmd->getId();
                 $replace['#counter_uid#'] = $counterCmd->getId();
                 $replace['#counter_eqLogic_id#'] = $replace['#uid#'];
@@ -459,7 +460,17 @@ class mybin extends eqLogic {
                 $replace['#counter_valueDate#'] = $counterCmd->getValueDate();
                 $replace['#counter_minValue#'] = $counterCmd->getConfiguration('minValue', 0);
                 $replace['#counter_maxValue#'] = $counterCmd->getConfiguration('maxValue');
-                $replace['#counter_state#'] = $counterCmd->execCmd();
+                $replace['#counter_state#'] = $cmdVal;
+
+                $minValue = 0;
+                $maxValue = 100;
+                $angle = ((($cmdVal - $minValue) * 180) / ($maxValue - $minValue)) - 180;
+                if ($cmdVal >= $maxValue) {
+                    $angle = 0;
+                } else if ($cmdVal <= $minValue) {
+                    $angle = -180;
+                }
+                $replace['#gaugeAngle#'] = $angle;
                 $replace['#counter_unite#'] = $counterCmd->getUnite();
             } else {
                 $replace['#counter_id#'] = '';
@@ -1131,7 +1142,7 @@ class mybinCmd extends cmd {
             $eqLogic = $this->getEqLogic();
             $threshold = $eqLogic->getConfiguration('seuil', '');
             $this->setConfiguration('minValue', 0);
-            $this->setConfiguration('maxValue', $threshold);
+            if ($threshold  != '') $this->setConfiguration('maxValue', $threshold);
             mybin::debug('Threshold changed to ' . $threshold . ' : ' . $this->getChanged());
         }
     }
