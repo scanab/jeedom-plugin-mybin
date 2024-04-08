@@ -459,7 +459,7 @@ class mybin extends eqLogic {
                 $replace['#counter_collectDate#'] = $counterCmd->getCollectDate();
                 $replace['#counter_valueDate#'] = $counterCmd->getValueDate();
                 $replace['#counter_minValue#'] = $counterCmd->getConfiguration('minValue', 0);
-                $replace['#counter_maxValue#'] = $counterCmd->getConfiguration('maxValue');
+                $replace['#counter_maxValue#'] = $counterCmd->getConfiguration('maxValue', 100);
                 $replace['#counter_state#'] = $cmdVal;
 
                 $minValue = 0;
