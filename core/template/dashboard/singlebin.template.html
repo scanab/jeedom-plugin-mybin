@@ -14,13 +14,13 @@
         #binnotifs#
         <br />
         <div class="nextCollect">
-          <span class="cmdName">#nextcollectname#</span>
+          <span class="cmdName mini">#nextcollectname#</span>
           <br />
-          <span class="cmdName">#nextcollectdate#</span>
+          <span class="cmdName mini">#nextcollectdate#</span>
         </div>
       </center>
     </div>
-    <div class="col-xs-6">
+    <div class="col-xs-6 mini">
       <center>
         <div class="cmd cmd-widget arcgauge" data-type="info" data-subtype="numeric" data-template="default"
           data-cmd_id="#counter_id#" data-cmd_uid="#uid#" data-version="#version#"
@@ -53,28 +53,35 @@
   <script>
     #binscript#
 
-    if ('#reset_id#' != '') {
-      $('.cmd[data-cmd_uid=#reset_uid#]:last .action').off('click').on('click', function () {
-        jeedom.cmd.execute({ id: '#reset_id#' });
-      });
-    } else {
-      $('.eqLogic[data-eqLogic_uid=#uid#] .resetCounter').remove();
+    if ('#widgetTemplate#' == '2') {
+      $('.eqLogic[data-eqLogic_uid=#uid#] .mini').hide();
+    }
+    else {
+
+      if ('#reset_id#' != '') {
+        $('.cmd[data-cmd_uid=#reset_uid#]:last .action').off('click').on('click', function () {
+          jeedom.cmd.execute({ id: '#reset_id#' });
+        });
+      } else {
+        $('.eqLogic[data-eqLogic_uid=#uid#] .resetCounter').remove();
+      }
+
+      if ('#nextcollectname#' == '') {
+        $('.eqLogic[data-eqLogic_uid=#uid#] .nextCollect').remove();
+      }
+
     }
 
-    if ('#nextcollectname#' == '') {
-      $('.eqLogic[data-eqLogic_uid=#uid#] .nextCollect').remove();
-    }
 
     if ('#counter_id#' != '') {
       jeedom.cmd.addUpdateFunction('#counter_id#', function (_options) {
-        console.log('update received ')
         if (is_object(cmd = document.querySelector('.cmd[data-cmd_uid="#uid#"]'))) {
           cmd.querySelectorAll('.content, .state').forEach(function (e) {
             e.setAttribute('title', 'Date de valeur: ' + _options.valueDate + '<br>Date de collecte: ' + _options.collectDate)
           })
 
           if (is_numeric(_options.value)) {
-            let minValue = parseFloat(#counter_minValue#), maxValue = parseFloat(#counter_maxValue#)
+            let minValue = parseFloat('#counter_minValue#'), maxValue = parseFloat('#counter_maxValue#')
             var angle = (((_options.value - minValue) * 180) / (maxValue - minValue)) - 180
             if (_options.value >= maxValue) {
               angle = 0

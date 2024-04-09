@@ -285,10 +285,14 @@ foreach ($eqLogics as $eqLogic) {
 								<legend><i class="icon jeedomapp-preset"></i> {{Options}}</legend>
 								<div class="form-group">
 									<label class="col-sm-3 control-label">{{Template de widget}}
-										<sup><i class="fas fa-question-circle tooltips" title="{{Cocher la case pour utiliser le template de widget}}"></i></sup>
+										<sup><i class="fas fa-question-circle tooltips" title="{{Choisir quel template de widget utiliser}}"></i></sup>
 									</label>
-									<div class="col-sm-1">
-										<input type="checkbox" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="widgetTemplate" />
+									<div class="col-sm-7">
+										<select class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="widgetTemplate">
+											<option value="0">Core</option>
+											<option value="1">Complet</option>
+											<option value="2">Minimaliste</option>
+										</select>
 									</div>
 								</div>
 								<div class="form-group">

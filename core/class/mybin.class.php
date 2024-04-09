@@ -331,7 +331,8 @@ class mybin extends eqLogic {
     }
 
     public function toHtml($_version = 'dashboard') {
-        if (($this->getConfiguration('type') <> 'whole' && $this->getConfiguration('widgetTemplate') == 0) || $this->getIsEnable() == 0) {
+        $widgetTemplate = $this->getConfiguration('widgetTemplate');
+        if (($this->getConfiguration('type') <> 'whole' && $widgetTemplate == 0) || $this->getIsEnable() == 0) {
             return parent::toHtml($_version);
         }
         $replace = $this->preToHtml($_version);
@@ -450,47 +451,52 @@ class mybin extends eqLogic {
             $replace['#binscript#'] = $binscript;
             $replace['#binnotifs#'] = $binnotifs;
 
-            $counterCmd = $this->getCmd(null, 'counter');
-            if ($counterCmd->getIsVisible() == 1) {
-                $cmdVal = $counterCmd->execCmd();
-                $replace['#counter_id#'] = $counterCmd->getId();
-                $replace['#counter_uid#'] = $counterCmd->getId();
-                $replace['#counter_eqLogic_id#'] = $replace['#uid#'];
-                $replace['#counter_collectDate#'] = $counterCmd->getCollectDate();
-                $replace['#counter_valueDate#'] = $counterCmd->getValueDate();
-                $replace['#counter_minValue#'] = $counterCmd->getConfiguration('minValue', 0);
-                $replace['#counter_maxValue#'] = $counterCmd->getConfiguration('maxValue', 100);
-                $replace['#counter_state#'] = $cmdVal;
+            $replace['#widgetTemplate#'] = $widgetTemplate;
 
-                $minValue = 0;
-                $maxValue = 100;
-                $angle = ((($cmdVal - $minValue) * 180) / ($maxValue - $minValue)) - 180;
-                if ($cmdVal >= $maxValue) {
-                    $angle = 0;
-                } else if ($cmdVal <= $minValue) {
-                    $angle = -180;
+            if ($widgetTemplate == 1) {
+
+                $counterCmd = $this->getCmd(null, 'counter');
+                if ($counterCmd->getIsVisible() == 1) {
+                    $cmdVal = $counterCmd->execCmd();
+                    $replace['#counter_id#'] = $counterCmd->getId();
+                    $replace['#counter_uid#'] = $counterCmd->getId();
+                    $replace['#counter_eqLogic_id#'] = $replace['#uid#'];
+                    $replace['#counter_collectDate#'] = $counterCmd->getCollectDate();
+                    $replace['#counter_valueDate#'] = $counterCmd->getValueDate();
+                    $replace['#counter_minValue#'] = $counterCmd->getConfiguration('minValue', 0);
+                    $replace['#counter_maxValue#'] = $counterCmd->getConfiguration('maxValue', 100);
+                    $replace['#counter_state#'] = $cmdVal;
+
+                    $minValue = 0;
+                    $maxValue = 100;
+                    $angle = ((($cmdVal - $minValue) * 180) / ($maxValue - $minValue)) - 180;
+                    if ($cmdVal >= $maxValue) {
+                        $angle = 0;
+                    } else if ($cmdVal <= $minValue) {
+                        $angle = -180;
+                    }
+                    $replace['#gaugeAngle#'] = $angle;
+                    $replace['#counter_unite#'] = $counterCmd->getUnite();
+                } else {
+                    $replace['#counter_id#'] = '';
                 }
-                $replace['#gaugeAngle#'] = $angle;
-                $replace['#counter_unite#'] = $counterCmd->getUnite();
-            } else {
-                $replace['#counter_id#'] = '';
-            }
 
 
-            $resetCmd = $this->getCmd(null, 'resetcounter');
-            if ($resetCmd->getIsVisible() == 1) {
-                $replace['#reset_id#'] = $resetCmd->getId();
-                $replace['#reset_uid#'] = $resetCmd->getId();
-            } else {
-                $replace['#reset_id#'] = '';
-            }
+                $resetCmd = $this->getCmd(null, 'resetcounter');
+                if ($resetCmd->getIsVisible() == 1) {
+                    $replace['#reset_id#'] = $resetCmd->getId();
+                    $replace['#reset_uid#'] = $resetCmd->getId();
+                } else {
+                    $replace['#reset_id#'] = '';
+                }
 
-            $nextCollectCmd = $this->getCmd(null, 'nextcollect');
-            if ($nextCollectCmd->getIsVisible() == 1) {
-                $replace['#nextcollectname#'] = $nextCollectCmd->getName();
-                $replace['#nextcollectdate#'] = $nextCollectCmd->execCmd();
-            } else {
-                $replace['#nextcollectname#'] = '';
+                $nextCollectCmd = $this->getCmd(null, 'nextcollect');
+                if ($nextCollectCmd->getIsVisible() == 1) {
+                    $replace['#nextcollectname#'] = $nextCollectCmd->getName();
+                    $replace['#nextcollectdate#'] = $nextCollectCmd->execCmd();
+                } else {
+                    $replace['#nextcollectname#'] = '';
+                }
             }
 
             $html = template_replace($replace, getTemplate('core', $version, 'singlebin.template', __CLASS__));
