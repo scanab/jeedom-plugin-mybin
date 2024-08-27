@@ -208,7 +208,7 @@ class mybin extends eqLogic {
                 $cmd = $this->getCmd(null, 'counter');
                 $value = $cmd->execCmd();
                 $cmd->event($value + 1);
-                self::info($this->getHumanName() . ' counter incremented to ' . $value + 1);
+                self::info($this->getHumanName() . ' counter incremented to ' . ($value + 1));
             }
             $action_collect = $this->getConfiguration('action_collect');
             if (is_array($action_collect)) {
