@@ -206,7 +206,7 @@ class mybin extends eqLogic {
             $counterType = $this->getConfiguration('counter', 'auto');
             if (($counterType == 'auto') || ($counterType == 'manu' && !$auto)) {
                 $cmd = $this->getCmd(null, 'counter');
-                $value = $cmd->execCmd();
+                $value = (int) $cmd->execCmd();
                 $cmd->event($value + 1);
                 self::info($this->getHumanName() . ' counter incremented to ' . ($value + 1));
             }
