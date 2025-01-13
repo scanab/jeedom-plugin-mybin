@@ -2,12 +2,29 @@
 
 trait tomitomasEqLogicTrait {
 
-    public function createCommands(string $file, string $type) {
-        $configFile = self::getFileContent($file);
-        $dict = $configFile['dictionary'];
+    public static function getConfigFileContent($filePath) {
+        if (!file_exists($filePath)) {
+            throw new Exception(__("Fichier de configuration non trouvé", __FILE__) . ' ' . $filePath);
+        }
+        $content = file_get_contents($filePath);
+        if (!is_json($content)) {
+            throw new Exception(__("Fichier de configuration incorrecte", __FILE__) . ' ' . $filePath);
+        }
+        $content = translate::exec($content, realpath($filePath));
+        return json_decode($content, true);
+    }
+
+    public function createCommands($filePath, $type = null) {
         try {
-            if (isset($configFile['cmds'][$type])) {
-                $this->createCommandsFromConfigFile($configFile['cmds'][$type], $dict);
+
+            // on traduit le fichier de configuration
+            $configFile = self::getConfigFileContent($filePath);
+
+            // on lance la création des commandes (déjà traduites)
+            if ($type == null) {
+                $this->createCommandsFromConfig($configFile['cmds']);
+            } elseif (isset($configFile['cmds'][$type])) {
+                $this->createCommandsFromConfig($configFile['cmds'][$type]);
             } else {
                 self::error($type . ' not found in config');
             }
@@ -32,7 +49,7 @@ trait tomitomasEqLogicTrait {
         return $content;
     }
 
-    public function createCommandsFromConfigFile($commands, $dict) {
+    public function createCommandsFromConfig($commands) {
         $cmd_updated_by = array();
         foreach ($commands as $cmdData) {
             $cmd = $this->getCmd(null, $cmdData["logicalId"]);
@@ -63,18 +80,6 @@ trait tomitomasEqLogicTrait {
                 if (isset($cmdData["order"])) {
                     $cmd->setOrder($cmdData["order"]);
                 }
-
-                if (isset($cmdData['display'])) {
-                    foreach ($cmdData['display'] as $key => $value) {
-                        $cmd->setDisplay($key, $value);
-                    }
-                }
-
-                if (isset($cmdData['template'])) {
-                    foreach ($cmdData['template'] as $key => $value) {
-                        $cmd->setTemplate($key, $value);
-                    }
-                }
             }
 
             $cmd->setName(__($cmdData["name"], __FILE__));
@@ -84,11 +89,19 @@ trait tomitomasEqLogicTrait {
 
             if (isset($cmdData['configuration'])) {
                 foreach ($cmdData['configuration'] as $key => $value) {
-                    if ($key == 'listValueToCreate') {
-                        $key = 'listValue';
-                        $value = self::createListOption(explode(";", $value), $dict);
-                    }
                     $cmd->setConfiguration($key, $value);
+                }
+            }
+
+            if (isset($cmdData['display'])) {
+                foreach ($cmdData['display'] as $key => $value) {
+                    $cmd->setDisplay($key, $value);
+                }
+            }
+
+            if (isset($cmdData['template'])) {
+                foreach ($cmdData['template'] as $key => $value) {
+                    $cmd->setTemplate($key, $value);
                 }
             }
 
@@ -110,10 +123,15 @@ trait tomitomasEqLogicTrait {
         }
     }
 
-    public static function createListOption($data, $dict) {
+    public static function createListOption($data, $dict, $filter = array()) {
 
         $list = '';
+        $needFilter = count($filter) > 0;
         foreach ($data as $item) {
+            if ($needFilter && !in_array($item, $filter)) {
+                self::warning($item . ' ' . __('valeur filtrée, on passe', __FILE__));
+                continue;
+            }
             $val = $dict[$item] ?? $item;
             $list .= $item . '|' . $val . ';';
         }
@@ -124,6 +142,112 @@ trait tomitomasEqLogicTrait {
 
     public static function getPlurial($nb) {
         return ($nb > 1) ? 's' : '';
+    }
+
+    public static function getConfigForCommunity($withQuote = true) {
+
+        $infoPlugin = '<b>Version OS</b> : ' .  system::getDistrib() . ' ' . system::getOsVersion() . '<br/>';
+
+        $infoPlugin .= '<b>Version PHP</b> : ' . phpversion();
+
+        if ($withQuote) {
+            return self::getPreformattedText($infoPlugin);
+        }
+
+        return $infoPlugin;
+    }
+
+    public static function getPreformattedText($string) {
+        return '<br/>```text<br/>' . str_replace(array('<b>', '</b>', '&nbsp;'), array('', '', ' '), $string) . '<br/>```<br/>';
+    }
+
+    public static function backupExclude() {
+        return [
+            'resources/venv'
+        ];
+    }
+
+    public static function deleteDirectory($dir) {
+        if (!file_exists($dir)) {
+            return false;
+        }
+
+        if (!is_dir($dir)) {
+            return false;
+        }
+
+        $items = array_diff(scandir($dir), array('.', '..'));
+
+        foreach ($items as $item) {
+            $path = $dir . DIRECTORY_SEPARATOR . $item;
+
+            if (is_dir($path)) {
+                self::deleteDirectory($path);
+            } else {
+                unlink($path);
+            }
+        }
+
+        return rmdir($dir);
+    }
+
+    /*******************************
+     * From @Mips2648
+     ******************************* /
+     
+    
+    /**
+     * Allow to perform a // task exec : now or later
+     *
+     * @param string $_method
+     * @param array|null $_option
+     * @param string $_date
+     * @return void
+     */
+    public static function executeAsync(string $_method, $_option = null, $_date = 'now') {
+        if (!method_exists(__CLASS__, $_method)) {
+            throw new InvalidArgumentException("Method provided for executeAsync does not exist: {$_method}");
+        }
+
+        $cron = new cron();
+        $cron->setClass(__CLASS__);
+        $cron->setFunction($_method);
+        if (isset($_option)) {
+            $cron->setOption($_option);
+        }
+        $cron->setOnce(1);
+        $scheduleTime = strtotime($_date);
+        $cron->setSchedule(cron::convertDateToCron($scheduleTime));
+        $cron->save();
+        if ($scheduleTime <= strtotime('now')) {
+            $cron->run();
+            self::debug("Task '{$_method}' executed now");
+        } else {
+            self::debug("Task '{$_method}' scheduled at {$_date}");
+        }
+    }
+
+    private static function pythonRequirementsInstalled(string $pythonPath, string $requirementsPath) {
+        if (!file_exists($pythonPath) || !file_exists($requirementsPath)) {
+            return false;
+        }
+        exec("{$pythonPath} -m pip freeze", $packages_installed);
+        $packages = join("||", $packages_installed);
+        exec("cat {$requirementsPath}", $packages_needed);
+        foreach ($packages_needed as $line) {
+            if (preg_match('/([^\s]+)[\s]*([>=~]=)[\s]*([\d+\.?]+)$/', $line, $need) === 1) {
+                if (preg_match('/' . $need[1] . '==([\d+\.?]+)/', $packages, $install) === 1) {
+                    if ($need[2] == '==' && $need[3] != $install[1]) {
+                        return false;
+                    } elseif (version_compare($need[3], $install[1], '>')) {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
