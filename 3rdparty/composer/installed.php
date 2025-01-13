@@ -3,7 +3,7 @@
         'name' => 'tomitomas/plugin-mybin',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '582673e836635da7c4e75aeb49d8a1ecd0ae1a9c',
+        'reference' => 'c93ee6a0f1a224cf07d0e6df1c30bb965322e570',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'tomitomas/jeedom-tools' => array(
-            'pretty_version' => '0.3',
-            'version' => '0.3.0.0',
-            'reference' => '8f7d4fe048313088f9105c3814f5148bb9fd0e8d',
+            'pretty_version' => '0.8.0',
+            'version' => '0.8.0.0',
+            'reference' => 'd07ff69ffbf2c5c92bed7e4d2c3d16a142322d11',
             'type' => 'library',
             'install_path' => __DIR__ . '/../tomitomas/jeedom-tools',
             'aliases' => array(),
@@ -22,7 +22,7 @@
         'tomitomas/plugin-mybin' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '582673e836635da7c4e75aeb49d8a1ecd0ae1a9c',
+            'reference' => 'c93ee6a0f1a224cf07d0e6df1c30bb965322e570',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
